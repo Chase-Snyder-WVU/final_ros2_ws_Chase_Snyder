@@ -1,0 +1,290 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.6">
+  <model name="square_bot">
+    <static>1</static>
+    <link name="base_link">
+      <kinematic>true</kinematic>
+      <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.001</ixx>
+          <iyy>0.001</iyy>
+          <izz>0.001</izz>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyz>0.0</iyz>
+        </inertia>
+        <pose>0 0 0.055 0 0 0</pose>
+      </inertial>
+      <visual name="base_link_visual">
+        <pose>0 0 0.055 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.20 0.15 0.05</size>
+          </box>
+        </geometry>
+      </visual>
+      <collision name="base_link_collision">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.01 0.01 0.01</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+    <link name="left_wheel_link">
+      <pose>0.0 0.08 0.03 0.0 -0.0 0.0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.001</ixx>
+          <iyy>0.001</iyy>
+          <izz>0.001</izz>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyz>0.0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="left_wheel_link_visual">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.03</radius>
+            <length>0.02</length>
+          </cylinder>
+        </geometry>
+      </visual>
+      <collision name="left_wheel_link_collision">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.03</radius>
+            <length>0.02</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <link name="right_wheel_link">
+      <pose>0.0 -0.08 0.03 0.0 -0.0 0.0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.001</ixx>
+          <iyy>0.001</iyy>
+          <izz>0.001</izz>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyz>0.0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="right_wheel_link_visual">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.03</radius>
+            <length>0.02</length>
+          </cylinder>
+        </geometry>
+      </visual>
+      <collision name="right_wheel_link_collision">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.03</radius>
+            <length>0.02</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <link name="camera_link">
+      <pose>0.1 0.0 0.2 0.0 -0.0 0.0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.00041666666666666675</ixx>
+          <iyy>0.00041666666666666675</iyy>
+          <izz>0.00041666666666666675</izz>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyz>0.0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="camera_link_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.05 0.05 0.05</size>
+          </box>
+        </geometry>
+      </visual>
+      <collision name="camera_link_collision">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.05 0.05 0.05</size>
+          </box>
+        </geometry>
+      </collision>
+    <sensor type="camera" name="camera_sensor">
+        <pose>0 0 0 0 0 0</pose>
+        <always_on>1</always_on>
+        <update_rate>10.0</update_rate>
+        <camera name="head">
+          <horizontal_fov>1.3962634</horizontal_fov>
+          <clip>
+            <near>0.05</near>
+            <far>2.0</far>
+          </clip>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+        </camera>
+
+    <plugin name="gazebo_ros_camera" filename="libgazebo_ros_camera.so">
+          <alwaysOn>true</alwaysOn>
+          <updateRate>0.0</updateRate>
+          <cameraName>square_bot/camera_sensor</cameraName>
+          <imageTopicName>/square_bot/camera_sensor/image_raw</imageTopicName>
+          <cameraInfoTopicName>/square_bot/camera_sensor/camera_info</cameraInfoTopicName>
+          <frameName>square_bot/camera_sensor</frameName>
+          <hackBaseline>0.07</hackBaseline>
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+        </plugin>
+      </sensor>
+    </link>
+    <link name="camera_optical_frame">
+      <pose>0.1 0.0 0.2 0.0 -0.0 0.0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.001</ixx>
+          <iyy>0.001</iyy>
+          <izz>0.001</izz>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyz>0.0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="camera_optical_frame_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.1 0.1 0.1</size>
+          </box>
+        </geometry>
+      </visual>
+      <collision name="camera_optical_frame_collision">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.1 0.1 0.1</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+    <link name="caster_link">
+      <pose>-0.08 0.0 0.02 0.0 -0.0 0.0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.001</ixx>
+          <iyy>0.001</iyy>
+          <izz>0.001</izz>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyz>0.0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="caster_link_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.02</radius>
+          </sphere>
+        </geometry>
+      </visual>
+      <collision name="caster_link_collision">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.02</radius>
+          </sphere>
+        </geometry>
+      </collision>
+    </link>
+    <link name="caster_link2">
+      <pose>0.08 0.0 0.02 0.0 -0.0 0.0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.001</ixx>
+          <iyy>0.001</iyy>
+          <izz>0.001</izz>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyz>0.0</iyz>
+        </inertia>
+      </inertial>
+      <visual name="caster_link2_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.02</radius>
+          </sphere>
+        </geometry>
+      </visual>
+      <collision name="caster_link2_collision">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.02</radius>
+          </sphere>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="left_wheel_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>left_wheel_link</child>
+      <pose>0.0 0.08 0.03 0.0 -0.0 0.0</pose>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+    <joint name="right_wheel_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>right_wheel_link</child>
+      <pose>0.0 -0.08 0.03 0.0 -0.0 0.0</pose>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+    <joint name="camera_optical_joint" type="fixed">
+      <parent>camera_link</parent>
+      <child>camera_optical_frame</child>
+      <pose>0.1 0.0 0.2 0.0 -0.0 0.0</pose>
+    </joint>
+    <joint name="base_to_camera" type="fixed">
+      <parent>base_link</parent>
+      <child>camera_link</child>
+      <pose>0.1 0.0 0.2 0.0 -0.0 0.0</pose>
+    </joint>
+    <joint name="caster_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>caster_link</child>
+      <pose>-0.08 0.0 0.02 0.0 -0.0 0.0</pose>
+    </joint>
+    <joint name="caster_joint2" type="fixed">
+      <parent>base_link</parent>
+      <child>caster_link2</child>
+      <pose>0.08 0.0 0.02 0.0 -0.0 0.0</pose>
+    </joint>
+  </model>
+</sdf>
