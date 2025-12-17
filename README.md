@@ -149,6 +149,12 @@ export LIBGL_ALWAYS_SOFTWARE=1
 export MESA_GL_VERSION_OVERRIDE=3.3
 ros2 launch robot_bringup final_mission.launch.py
 ```
+---
+
+## Known Bugs
+### 1) Bad Start
+At start up sometimes the controller node and evaluator miss thier intializaiton messages and sit idle, you will have to reset the run to try again.
+Making sure the evaluator starts before the controller is the way to avoid this issue consistently.
 
 
 
