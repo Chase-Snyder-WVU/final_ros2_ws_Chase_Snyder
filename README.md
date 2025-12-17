@@ -1,144 +1,154 @@
-# Square-Path Mobile Robot Simulation (ROS 2 Humble)
-**Author:** Chase Snyder
-**Course:** ROBE 313 - West Virginia University
-**Assignment:** Homework 3 - ROS 2 Multi-Package System
+# Autonomous Warehouse Inspection Bot — ROS 2 Final Project
+
+**Author:** Chase Snyder  
+**Course:** ROBE 313 (Robot Operating Systems) - West Virginia University  
+**Platform:** ROS 2 Humble - Ubuntu 22.04 (WSL supported)
 
 ## Project Overview
-This project implements a ROS 2 Humble simulation for a mobile robot that drives in a **2m x 2m square** in an Ubuntu 22.04 WSL environment.
-> **Note:** 
-> This implementation uses **only linear x and y velocity** with no turning or angular models.
+This repository contains a ROS 2 Humble simulation of a **differential-drive mobile robot** that explores a warehouse environment, detects **ArUco markers**, navigates to requested markers, and performs an **image inspection** task. The system is designed around a simple mission-driven **state machine** and uses TF2 to reason about robot and marker poses.
+
+> **Dependency Note**  
+> This project relies on the WVU class workspace being present and built (packages/tools provided by the course).  
+> Clone/build the class workspace first: https://github.com/WVU-ROBE313-class
+
+---
 
 ## Main Features
-- C++ odometry node that integrates velocity to estimate robot pose and publishes robot pose with `/tf` broadcast.
-- Python controller node using TF2 feeback and a state machine to drive the square path by publishing velocity commands.
-- Python teleop keyboard controller using ROS 2 twist keyboard.
-- Custom `.srv` service to reset robot pose.
-- URDF robot model and visualization in RViz.
+- **C++ Odometry Node**
+  - Integrates velocity to estimate robot pose
+  - Publishes TF (`world -> base_link`)
+  - Provides a reset service to re-zero pose
+- **Python Mission Controller**
+  - State machine for missions: initialization → search → navigate → inspection → return
+  - Uses TF2 feedback and proportional control
+  - Uses OpenCV (cv2) for ArUco and image inspection steps
+- **Gazebo + RViz Visualization**
+  - Launch files, URDF, and RViz config included
 
-## Workspace Structure
-ros2_ws_Chase Snyder/
-    src/
-        custom_interfaces/
-        robot_simulator_cpp/
-        robot_simulator_py/
-        robot_bringup/
+---
 
 ## Package Summary
-- **custom_interfaces** holds `ResetPosition.srv`
-- **robot_simulator_cpp** publishes `/tf`, integrates odometry, and provides reset service
-- **robot_simulator_py** TF2 controller state machine that publishes `/cmd_vel` for square path
-- **robot_bringup** holds the launch files, URDF, and RViz config
+- **custom_interfaces**
+  - `ResetPosition.srv`
+- **robot_simulator_cpp**
+  - Odometry and TF publisher
+  - Reset position service
+- **robot_simulator_py**
+  - Controller / mission state machine
+  - Publishes `/cmd_vel`, `/robot_status`, `/robot_report`
+- **robot_bringup**
+  - Launch files, URDF, RViz config
+
+---
+
+## State Machine / Mission Flow
+The controller listens for mission commands on `/missions` and responds via `/robot_status` and `/robot_report`.
+
+### Phase 1 — Initialization
+- Waits for system start and node readiness
+- Publishes: `ready` to `/robot_status`
+
+### Phase 2 — Search (`search_aruco`)
+- Robot rotates/drives to scan the environment
+- When a marker is detected, publish to `/robot_report`:
+  - `aruco <ID> in position x: <X>, y: <Y>, z: <Z>`
+
+### Phase 3 — Navigation (`move to <ID>`)
+- Drives to the stored position for the requested marker ID
+- Publishes upon arrival:
+  - `arrived to <ID>` to `/robot_report`
+
+### Phase 4 — Inspection (`image_analysis`)
+- Perform image motion analysis
+- Publishes:
+  - `analyze image` to `/robot_status`
+- Subscribes:
+  - `image1` and `image2`
+- Detect coordinates where movement is detected before publishing:
+  - `movement at x: <val>, y: <val>` to `/robot_report`
+
+### Phase 5 — Return (`to origin`)
+- Drive robot back to the initial position
+- Publishes on call:
+  - `returning` to `/robot_status`
+- Publishes on arrival:
+  - `returned` to `/robot_report`
+
+### Phase 6 (Bonus) — Feature Counting
+- Count features using OpenCV feature matching
+- Publishes:
+  - `analyze image2` to `/robot_status`
+- Subscribes:
+  - `image1` and `image2`
+- Detects features between them with SIFT/feature matching before publishing:
+  - `<N> features detected` to `/robot_report`
+
+---
 
 ## Requirements
-- ROS 2 Humble  (Ubuntu 22.04 / WSL)
+- Ubuntu 22.04 + ROS 2 Humble
 - `colcon`
-- `ament`
 - `rviz2`
-- `Python3`
-- `rclpy`
-- `C++17`
-- `rclcpp`
+- `gazebo` (as provided by course environment)
+- Python 3 + `rclpy`
+- C++17 + `rclcpp`
+- OpenCV (`cv2`)
+
+---
 
 ## Build Instructions
 
-### 1. Clone Workspace
-Open a terminal and input the following command.
+### 0) One-Time Setup: Install/Build the Class Workspace
+This project depends on the WVU class packages (Gazebo launcher, evaluator, worlds, etc.).  
+Follow the class instructions and ensure both workspaces below build successfully:
+
+- `~/ROBE313_ROS_ws/Simulation_ws`
+- `~/ROBE313_ROS_ws/Evaluator_SM_ws`
+
+### 1) Clone and Build This Repository
 ```bash
-git clone https://github.com/Chase-Snyder-WVU/ros2_ws_Chase_Snyder.git
+git clone https://github.com/Chase-Snyder-WVU/final_ros2_ws_Chase_Snyder.git
+cd final_ros2_ws_Chase_Snyder
 ```
-### 2. Source ROS 2
-Source Ros 2 on your system.
+# Source ROS 2
 ```bash
 source /opt/ros/humble/setup.bash
 ```
-### 3. Build
-Source the project folder directory and build it.
+# Build and source overlay
 ```bash
-cd ros2_ws_Chase_Snyder2
 colcon build
 source install/setup.bash
 ```
-### 4. Run Simulation 
-From ros2_ws_Chase_Snyder2 run the simulation.
+### 2) Move the robot  model SDF from
+- `~\final_ros2_ws_Chase_Snyder\src\SDF`
+- To:
+- `~\ROBE313_ROS_ws\Simulation_ws\models\`
+
+## Running the Project
+
+### Terminal 1
 ```bash
-ros2 launch robot_bringup robot_simulation.launch.py
-```
->**WSL Note:**
->WSL fails to render the graphics with the base settings, the following commands will force software rendering though RViz remains unstable. Run them before sending the launch command to the terminal if you have this issue.
-```bash
+cd ~/ROBE313_ROS_ws/Simulation_ws
+source install/setup.bash
 export LIBGL_ALWAYS_SOFTWARE=1
 export MESA_GL_VERSION_OVERRIDE=3.3
+ros2 launch gazebo_sim gazebo_ros.launch.py world:=rect_room_aruco.world sdf_path:='/home/chasedrew03/ROBE313_ROS_ws/Simulation_ws/models/square_bot/model.sdf' model_name:=square_bot
 ```
->**RViz Note:** 
-> When using RViz, the Topic and Parameter options did not function properly. You may have to directly reference the URDF file path (robot_bringup->urdf) under robot model->robot description in RViz.
-
-## Keyboard Teleop
-After building, sourcing, and making sure the package works, proceed with the following steps.
-
-### 1. Launch Teleop Simulation
-RViz will appear with a idle robot.
+### Terminal 2
 ```bash
- ros2 launch robot_bringup teleop.launch.py
+cd ~/ROBE313_ROS_ws/Evaluator_SM_ws
+source install/setup.bash
+ros2 run evaluator_package evaluator_node
 ```
-### 2. Run the Keyboard
-In another terminal, initiate the Ros 2 twist keyboard.
+
+### Terminal 3
 ```bash
-  ros2 run teleop_twist_keyboard teleop_twist_keyboard
+cd ~/final_ros2_ws_Chase_Snyder
+source install/setup.bash
+export LIBGL_ALWAYS_SOFTWARE=1
+export MESA_GL_VERSION_OVERRIDE=3.3
+ros2 launch robot_bringup final_mission.launch.py
 ```
-### 3. Begin Controlling the Robot
-With the keyboard terminal selected and RViz in view. The following commands control the robot's position.
-**The Key Strokes**
-`shift + i = +x motion`
-`shift + < = -x motion`
-`shift + j = +y motion`
-`shift + l = -y motion`
-`w/x = increase/decrease linear speed`
-The other commands can also be used to manipulate the robot, but these are the primary strokes. 
->**Note:**
->In cases where the robot starts off the screen or has moved off the enviroment use the **Reset Robot Pose Service** command in a terminal to reset it and get the robot back into view on the frame.
-
->**Stopping Note:**
->Be careful when stopping, as the robot's next movement scales with the amount of time the robot has spent not moving. This is denoted as the "jumping" bug.
-## Useful Commands
-
-### Run Odometry Node
-```bash
-ros2 run robot_simulator_cpp odometry_node
-```
-### Run Only Controller
-```bash
-ros2 run robot_simulator_py controller_node
-```
-### Inspect Graph
-In a seperate terminal while the project is running. Display the node communication as an rqt_graph.
-```bash
-rqt_graph
-```
-### View Transforms
-In a seperate terminal while the odometry node, controller node, or the project is running.
-```bash
-ros2 run tf2_ros tf2_echo odom base_link
-```
-### Reset Robot Pose Service
-In a seperate terminal while the odometry node, controller node, or the project is running.
-```bash
-ros2 service call /ResetPosition custom_interfaces/srv/ResetPosition
-```
-## Known Bugs
-
-### "No Frames" Intialization
-This bug uncommonly occurs when the project is started, often displaying a failed transform message when it occurs. This is likely because on start-up the odometry node and controller node fail to see eachother's initialization commands resulting in an idle white robot in RViz,
-
-### Teleop "Jumping"
-This bug influences teleop control specifically, while not issuing any movement the robot appears idle. The moment a
-command is inputted though the robot "jumps" a signifcant distance scaling with the amount of time since the last
-input. It is unkown why this occurs.
 
 
 
-
-
-
-
-
-# final_ros2_ws_Chase_Snyder
